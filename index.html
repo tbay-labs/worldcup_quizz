@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tbay Match Day Quiz</title>
+    <style>
+        :root {
+            --tbay-cyan: #00cccc;
+            --tbay-cyan-dark: #008b8b;
+            --tbay-cyan-glow: rgba(0, 204, 204, 0.5);
+            --champion-gold: #FFD700;
+            --champion-gold-dark: #d4af37;
+            --white: #ffffff;
+            --text-dark: #141e26;
+            --text-gray: #63727e;
+            --bg-light: #f0f4f5;
+            --error-red: #ff4757;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: max(80px, env(safe-area-inset-top)); 
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-bottom: 40px;
+            position: relative;
+            z-index: 1;
+            overflow-x: hidden; 
+        }
+
+        .stadium-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 38vh;
+            background: radial-gradient(circle at 50% -20%, var(--tbay-cyan), var(--tbay-cyan-dark) 80%, #004d4d);
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            z-index: -1;
+            box-shadow: 0 15px 40px var(--tbay-cyan-glow);
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            padding: 35px 20px 30px 20px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            position: relative;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .header-title {
+            color: var(--tbay-cyan-dark);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 13px;
+            font-weight: 900;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .main-title {
+            font-size: 30px;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            font-style: italic; 
+        }
+
+        .reward-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+            border: 1.5px solid var(--champion-gold-dark);
+            color: #b8860b;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.1);
+            animation: pulse-glow 2s infinite;
+        }
+
+        .question-box {
+            background: linear-gradient(135deg, var(--text-dark), #2c3e50);
+            border-radius: 20px;
+            padding: 30px 20px 25px 20px;
+            margin-bottom: 25px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-bottom: 6px solid var(--tbay-cyan);
+            display: none; 
+        }
+
+        .question-box-label {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--champion-gold), var(--champion-gold-dark));
+            color: #6b4e00;
+            padding: 6px 16px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
+            white-space: nowrap;
+        }
+
+        #questionText {
+            font-size: 18px;
+            line-height: 1.5;
+            color: var(--white);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        #statusText {
+            font-size: 18px;
+            line-height: 1.4;
+            color: var(--text-dark);
+            margin-bottom: 30px;
+            font-weight: 700;
+            min-height: 40px;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .option-btn {
+            background-color: #f8fbfc;
+            color: var(--text-dark);
+            border: 2px solid #e1e8ed;
+            padding: 16px 20px 16px 65px; 
+            font-size: 16px;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 700;
+            width: 100%;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            min-height: 60px;
+        }
+
+        .option-letter {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: #e1e8ed;
+            color: var(--text-gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn:active {
+            transform: scale(0.96);
+        }
+
+        .option-btn.selected {
+            background-color: #ebfafa;
+            border-color: var(--tbay-cyan);
+            color: var(--tbay-cyan-dark);
+            box-shadow: 0 8px 20px rgba(0, 204, 204, 0.15);
+            transform: scale(1.02);
+        }
+
+        .option-btn.selected .option-letter {
+            background: var(--tbay-cyan);
+            color: var(--white);
+            box-shadow: 0 2px 8px rgba(0, 204, 204, 0.4);
+        }
+
+        .option-btn.selected::after {
+            content: '⚽';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #submitBtn {
+            background: linear-gradient(135deg, var(--tbay-cyan), var(--tbay-cyan-dark));
+            color: var(--white);
+            border: none;
+            padding: 22px;
+            font-size: 19px;
+            font-weight: 900;
+            border-radius: 18px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            display: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px var(--tbay-cyan-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #submitBtn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        #submitBtn:active {
+            transform: translateY(2px) scale(0.98);
+            box-shadow: 0 5px 15px var(--tbay-cyan-glow);
+        }
+
+        #message {
+            margin-top: 10px;
+            font-weight: 900;
+            font-size: 20px;
+            min-height: 24px;
+        }
+
+        .coupon-wrapper {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 15px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .coupon-container {
+            padding: 25px 15px;
+            background: linear-gradient(135deg, #fffbf0, #fff7db);
+            border: 3px dashed var(--champion-gold);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+            position: relative;
+        }
+
+        .coupon-code-text {
+            font-size: 28px;
+            font-weight: 900;
+            color: #b8860b;
+            letter-spacing: 3px;
+            word-break: break-all;
+        }
+
+        .validity-text {
+            font-size: 13px;
+            color: #b8860b;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: rgba(255, 215, 0, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .copy-btn {
+            background-color: var(--text-dark);
+            color: var(--white);
+            border: none;
+            padding: 18px;
+            font-size: 17px;
+            font-weight: 800;
+            border-radius: 18px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            letter-spacing: 1.5px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.97);
+            background-color: #000;
+        }
+
+        .instructions-card {
+            background-color: #f8fbfc;
+            border-left: 5px solid var(--tbay-cyan);
+            padding: 18px;
+            border-radius: 0 16px 16px 0;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-dark);
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .instructions-card strong {
+            color: var(--tbay-cyan-dark);
+            font-weight: 800;
+        }
+
+        .update-warning {
+            display: flex;
+            align-items: center;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--error-red);
+            font-weight: 800;
+            background-color: #fff0f1;
+            padding: 12px;
+            border-radius: 12px;
+            line-height: 1.4;
+        }
+
+        .loader {
+            border: 5px solid var(--bg-light);
+            border-top: 5px solid var(--tbay-cyan);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            animation: spin 1s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+            margin: 0 auto 25px auto;
+        }
+
+        .confetti-piece {
+            position: fixed;
+            top: -10px;
+            width: 10px;
+            height: 20px;
+            z-index: 9999;
+            animation: fall linear forwards;
+            border-radius: 2px;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes shimmer { 100% { left: 200%; } }
+        @keyframes popIn { 0% { transform: translateY(-50%) scale(0); } 100% { transform: translateY(-50%) scale(1); } }
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="stadium-bg"></div>
+
+    <div class="container">
+        <div class="header-title">Tbay Match Day</div>
+        <h2 class="main-title">Football Frenzy</h2>
+        
+        <div id="rewardBadge" class="reward-badge">
+            🎁 Win a 3% Bonus Coupon!
+        </div>
+        
+        <div id="loader" class="loader"></div>
+        
+        <p id="statusText">Warming up the pitch...</p>
+        
+        <div id="questionBox" class="question-box">
+            <div class="question-box-label">Match Question</div>
+            <p id="questionText"></p>
+        </div>
+        
+        <div class="options-container" id="optionsContainer">
+            <button class="option-btn" id="optBtn1" onclick="selectOption(this, 'optText1')">
+                <div class="option-letter">A</div>
+                <span id="optText1"></span>
+            </button>
+            <button class="option-btn" id="optBtn2" onclick="selectOption(this, 'optText2')">
+                <div class="option-letter">B</div>
+                <span id="optText2"></span>
+            </button>
+            <button class="option-btn" id="optBtn3" onclick="selectOption(this, 'optText3')">
+                <div class="option-letter">C</div>
+                <span id="optText3"></span>
+            </button>
+        </div>
+        
+        <button id="submitBtn" onclick="submitAnswer()">Kick Off ➔</button>
+        
+        <p id="message"></p>
+        
+        <div id="couponWrapper" class="coupon-wrapper">
+            <div class="coupon-container">
+                <div id="couponBox" class="coupon-code-text"></div>
+                <div class="validity-text">⏳ Valid for 7 Days</div>
+            </div>
+
+            <button id="copyBtn" class="copy-btn" onclick="copyCoupon()">Copy Reward Code</button>
+            
+            <div class="instructions-card">
+                <p>Add this code to the <strong>Coupon Center</strong> in the Tbay app to claim it. Works exactly like your regular coupons!</p>
+                <span class="update-warning">⚠️ Important: You must update to the latest version of the Tbay app to claim this reward.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // LIVE GOOGLE APPS SCRIPT URL ADDED HERE:
+        const API_URL = "https://script.google.com/macros/s/AKfycby10zZc4DrVexl1rPW6Gh-iSyVboTxM3T02H5p1tkpLV8XBHAZjOQGYFMviO9dHp0Xbbg/exec";
+
+        const d = new Date();
+        const localToday = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        
+        let selectedAnswer = "";
+
+        function shootConfetti() {
+            const colors = ['#00cccc', '#FFD700', '#ffffff', '#008b8b'];
+            for(let i=0; i<60; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti-piece';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                conf.style.animationDelay = (Math.random() * 0.5) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 4000);
+            }
+        }
+
+        window.onload = function() {
+            const statusEl = document.getElementById('statusText');
+            const questionBox = document.getElementById('questionBox');
+            const questionEl = document.getElementById('questionText');
+            const optionsContainer = document.getElementById('optionsContainer');
+            const submitBtn = document.getElementById('submitBtn');
+            const loader = document.getElementById('loader');
+            const couponBox = document.getElementById('couponBox');
+            const couponWrapper = document.getElementById('couponWrapper');
+            const messageEl = document.getElementById('message');
+            const rewardBadge = document.getElementById('rewardBadge');
+            
+            let lastPlayedDate = null;
+            let savedCoupon = null;
+
+            try {
+                lastPlayedDate = localStorage.getItem('daily_quiz_played_date');
+                savedCoupon = localStorage.getItem('daily_quiz_saved_coupon');
+            } catch (e) {
+                console.warn("Storage restricted by webview");
+            }
+            
+            // Handle returning user states (Won or Failed)
+            if (lastPlayedDate === localToday) {
+                loader.style.display = "none";
+                statusEl.style.display = "none";
+                questionBox.style.display = "none";
+                rewardBadge.style.display = "none"; 
+                
+                if (savedCoupon === "FAILED") {
+                    statusEl.style.display = "block";
+                    statusEl.innerText = "Match Over";
+                    messageEl.innerText = "❌ Incorrect answer. Better luck tomorrow!";
+                    messageEl.style.color = "var(--error-red)";
+                } else if (savedCoupon) {
+                    messageEl.innerText = "🎉 GOOOOAL! You won a 3% Bonus coupon! 🏆";
+                    messageEl.style.color = "var(--champion-gold-dark)";
+                    couponBox.innerText = savedCoupon;
+                    couponWrapper.style.display = "flex"; 
+                }
+                return; 
+            }
+
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    loader.style.display = "none";
+                    
+                    if (!data.couponsAvailable) {
+                        rewardBadge.style.display = "none"; 
+                        statusEl.innerText = "Whoops! The stadium is empty. All rewards claimed for today.";
+                        messageEl.innerText = "Check back tomorrow for a new match!";
+                        messageEl.style.color = "var(--text-gray)";
+                        return;
+                    }
+
+                    if(data.question && data.options && data.options.length >= 3) {
+                        statusEl.style.display = "none";
+                        questionBox.style.display = "block";
+                        questionEl.innerText = data.question;
+                        
+                        document.getElementById('optText1').innerText = data.options[0];
+                        document.getElementById('optText2').innerText = data.options[1];
+                        document.getElementById('optText3').innerText = data.options[2];
+                        
+                        optionsContainer.style.display = "flex";
+                        submitBtn.style.display = "block";
+                    } else {
+                        rewardBadge.style.display = "none";
+                        statusEl.innerText = "No match scheduled for today. Come back tomorrow!";
+                    }
+                })
+                .catch(error => {
+                    loader.style.display = "none";
+                    rewardBadge.style.display = "none";
+                    statusEl.style.color = "var(--error-red)";
+                    statusEl.innerText = "Connection lost. Please refresh the page.";
+                });
+        };
+
+        function selectOption(btnElement, textId) {
+            const buttons = document.getElementsByClassName('option-btn');
+            for(let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('selected');
+            }
+            btnElement.classList.add('selected');
+            selectedAnswer = document.getElementById(textId).innerText;
+        }
+
+        function getOrGenerateUserId() {
+            let userId = 'user_fallback_' + Math.random().toString(36).substring(2, 10);
+            try {
+                let storedId = localStorage.getItem('daily_quiz_user_id');
+                if (!storedId) {
+                    storedId = 'user_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+                    localStorage.setItem('daily_quiz_user_id', storedId);
+                }
+                userId = storedId;
+            } catch(e) {}
+            return userId;
+        }
+
+        function copyCoupon() {
+            const code = document.getElementById('couponBox').innerText;
+            const copyBtn = document.getElementById('copyBtn');
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(code).then(() => { showCopied(copyBtn); });
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = code;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try { document.execCommand('copy'); showCopied(copyBtn); } catch (err) { }
+                textArea.remove();
+            }
+        }
+
+        function showCopied(btn) {
+            const originalText = btn.innerText;
+            btn.innerText = "COPIED! ✅";
+            btn.style.backgroundColor = "var(--tbay-cyan)";
+            btn.style.color = "var(--white)";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.backgroundColor = "var(--text-dark)";
+            }, 2000);
+        }
+
+        function submitAnswer() {
+            const messageEl = document.getElementById('message');
+            const submitBtn = document.getElementById('submitBtn');
+            const optionsContainer = document.getElementById('optionsContainer');
+            const questionBox = document.getElementById('questionBox');
+            const statusEl = document.getElementById('statusText');
+            const couponBox = document.getElementById('couponBox');
+            const couponWrapper = document.getElementById('couponWrapper');
+            const rewardBadge = document.getElementById('rewardBadge');
+            const userId = getOrGenerateUserId();
+
+            if (selectedAnswer === "") {
+                messageEl.innerText = "Please select an option first!";
+                messageEl.style.color = "var(--error-red)";
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Reviewing VAR... 📺"; 
+            
+            messageEl.innerText = "";
+            couponWrapper.style.display = "none";
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ userId: userId, answer: selectedAnswer })
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.style.display = "none"; 
+                optionsContainer.style.display = "none";
+                questionBox.style.display = "none";
+                rewardBadge.style.display = "none"; 
+                
+                if (data.success) {
+                    shootConfetti(); 
+                    messageEl.innerText = "🎉 GOOOOAL! You won a 3% Bonus coupon! 🏆";
+                    messageEl.style.color = "var(--champion-gold-dark)";
+                    couponBox.innerText = data.couponCode;
+                    couponWrapper.style.display = "flex"; 
+                    
+                    try {
+                        localStorage.setItem('daily_quiz_played_date', localToday);
+                        localStorage.setItem('daily_quiz_saved_coupon', data.couponCode);
+                    } catch(e) {}
+                    
+                } else {
+                    // 🔒 RECORD FAILED ATTEMPT LOCALLY
+                    try {
+                        localStorage.setItem('daily_quiz_played_date', localToday);
+                        localStorage.setItem('daily_quiz_saved_coupon', "FAILED");
+                    } catch(e) {}
+
+                    statusEl.style.display = "block";
+                    statusEl.innerText = "Match Over";
+                    messageEl.innerText = "❌ Incorrect answer. Better luck tomorrow!"; 
+                    messageEl.style.color = "var(--error-red)";
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Kick Off ➔";
+                messageEl.innerText = "Network foul. Please try again.";
+                messageEl.style.color = "var(--error-red)";
+            });
+        }
+    </script>
+</body>
+</html>
