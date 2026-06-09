@@ -518,10 +518,11 @@
                 rewardBadge.style.display = "none"; 
                 
                 if (savedCoupon === "FAILED") {
+                    // ➔ NEXT TIME THEY VISIT (RETURNING LOCKED OUT STATE)
                     statusEl.style.display = "block";
                     statusEl.style.color = "var(--error-red)";
-                    statusEl.innerText = "❌ WRONG ANSWER!";
-                    messageEl.innerHTML = "<div class='loss-message-body'>🔴 <strong>RED CARD!</strong> You have already used your chance for today.<br><br>The referee has blown the final whistle for your session. Hit the training grounds and <strong>come back tomorrow</strong> for a next chance with a brand new question!</div>";
+                    statusEl.innerText = "🔴 RED CARD! You have already used your chance for today.";
+                    messageEl.innerHTML = "<div class='loss-message-body'>The referee has blown the final whistle for your session. Hit the training grounds and come back tomorrow for a next chance with a brand new question!</div>";
                     messageEl.style.color = "var(--text-dark)";
                 } else if (savedCoupon) {
                     messageEl.innerText = "🎉 GOOOOAL! You won a 3% Bonus coupon! 🏆";
@@ -669,7 +670,7 @@
                     } catch(e) {}
                     
                 } else {
-                    // RECORD FAILED ATTEMPT LOCALLY
+                    // ➔ FIRST TIME THEY VISIT (IMMEDIATE RESPONSE ON INCORRECT SUBMISSION)
                     try {
                         localStorage.setItem('daily_quiz_played_date', localToday);
                         localStorage.setItem('daily_quiz_saved_coupon', "FAILED");
@@ -678,7 +679,7 @@
                     statusEl.style.display = "block";
                     statusEl.style.color = "var(--error-red)";
                     statusEl.innerText = "❌ WRONG ANSWER!";
-                    messageEl.innerHTML = "<div class='loss-message-body'>🔴 <strong>RED CARD!</strong> You have already used your chance for today.<br><br>The referee has blown the final whistle for your session. Hit the training grounds and <strong>come back tomorrow</strong> for a next chance with a brand new question!</div>";
+                    messageEl.innerHTML = "<div class='loss-message-body'>Better luck tomorrow! Comeback tomorrow for a next chance with a different question.</div>";
                     messageEl.style.color = "var(--text-dark)";
                 }
             })
