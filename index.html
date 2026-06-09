@@ -140,12 +140,20 @@
         }
 
         #statusText {
-            font-size: 18px;
+            font-size: 20px;
             line-height: 1.4;
             color: var(--text-dark);
-            margin-bottom: 30px;
-            font-weight: 700;
-            min-height: 40px;
+            margin-bottom: 15px;
+            font-weight: 900;
+            min-height: 30px;
+        }
+
+        .loss-message-body {
+            font-size: 15px;
+            color: var(--text-gray);
+            line-height: 1.6;
+            margin-top: 12px;
+            font-weight: 600;
         }
 
         .options-container {
@@ -254,10 +262,11 @@
         }
 
         #message {
-            margin-top: 10px;
+            margin-top: 5px;
             font-weight: 900;
             font-size: 20px;
             min-height: 24px;
+            line-height: 1.4;
         }
 
         .coupon-wrapper {
@@ -321,6 +330,19 @@
             background-color: #000;
         }
 
+        .retention-banner {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+            border: 1.5px dashed var(--champion-gold-dark);
+            color: #8a6500;
+            padding: 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.4;
+            text-align: center;
+            margin-top: 5px;
+        }
+
         .instructions-card {
             background-color: #f8fbfc;
             border-left: 5px solid var(--tbay-cyan);
@@ -330,7 +352,6 @@
             font-size: 14px;
             line-height: 1.5;
             color: var(--text-dark);
-            margin-top: 5px;
             font-weight: 500;
         }
 
@@ -342,7 +363,6 @@
         .update-warning {
             display: flex;
             align-items: center;
-            margin-top: 12px;
             font-size: 13px;
             color: var(--error-red);
             font-weight: 800;
@@ -435,6 +455,10 @@
 
             <button id="copyBtn" class="copy-btn" onclick="copyCoupon()">Copy Reward Code</button>
             
+            <div class="retention-banner">
+                🔥 <strong>NEXT MATCHDAY IS TOMORROW!</strong> The stadium resets at midnight. Come back tomorrow to test your skills on a fresh pitch and earn rewards again!
+            </div>
+
             <div class="instructions-card">
                 <p>Add this code to the <strong>Coupon Center</strong> in the Tbay app to claim it. Works exactly like your regular coupons!</p>
                 <span class="update-warning">⚠️ Important: You must update to the latest version of the Tbay app to claim this reward.</span>
@@ -443,7 +467,6 @@
     </div>
 
     <script>
-        // LIVE GOOGLE APPS SCRIPT URL ADDED HERE:
         const API_URL = "https://script.google.com/macros/s/AKfycby10zZc4DrVexl1rPW6Gh-iSyVboTxM3T02H5p1tkpLV8XBHAZjOQGYFMviO9dHp0Xbbg/exec";
 
         const d = new Date();
@@ -496,9 +519,10 @@
                 
                 if (savedCoupon === "FAILED") {
                     statusEl.style.display = "block";
-                    statusEl.innerText = "Match Over";
-                    messageEl.innerText = "❌ Incorrect answer. Better luck tomorrow!";
-                    messageEl.style.color = "var(--error-red)";
+                    statusEl.style.color = "var(--error-red)";
+                    statusEl.innerText = "❌ WRONG ANSWER!";
+                    messageEl.innerHTML = "<div class='loss-message-body'>🔴 <strong>RED CARD!</strong> You have already used your chance for today.<br><br>The referee has blown the final whistle for your session. Hit the training grounds and <strong>come back tomorrow</strong> for a next chance with a brand new question!</div>";
+                    messageEl.style.color = "var(--text-dark)";
                 } else if (savedCoupon) {
                     messageEl.innerText = "🎉 GOOOOAL! You won a 3% Bonus coupon! 🏆";
                     messageEl.style.color = "var(--champion-gold-dark)";
@@ -645,16 +669,17 @@
                     } catch(e) {}
                     
                 } else {
-                    // 🔒 RECORD FAILED ATTEMPT LOCALLY
+                    // RECORD FAILED ATTEMPT LOCALLY
                     try {
                         localStorage.setItem('daily_quiz_played_date', localToday);
                         localStorage.setItem('daily_quiz_saved_coupon', "FAILED");
                     } catch(e) {}
 
                     statusEl.style.display = "block";
-                    statusEl.innerText = "Match Over";
-                    messageEl.innerText = "❌ Incorrect answer. Better luck tomorrow!"; 
-                    messageEl.style.color = "var(--error-red)";
+                    statusEl.style.color = "var(--error-red)";
+                    statusEl.innerText = "❌ WRONG ANSWER!";
+                    messageEl.innerHTML = "<div class='loss-message-body'>🔴 <strong>RED CARD!</strong> You have already used your chance for today.<br><br>The referee has blown the final whistle for your session. Hit the training grounds and <strong>come back tomorrow</strong> for a next chance with a brand new question!</div>";
+                    messageEl.style.color = "var(--text-dark)";
                 }
             })
             .catch(error => {
